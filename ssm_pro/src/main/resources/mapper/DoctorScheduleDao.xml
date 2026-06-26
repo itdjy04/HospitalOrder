@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.jssvc.dao.DoctorScheduleDao">
+
+	<resultMap type="edu.jssvc.entity.DoctorSchedule" id="scheduleMap">
+		<id column="id" property="id"/>
+		<result column="doctor_id" property="doctorId"/>
+		<result column="hospital_name" property="hospitalName"/>
+		<result column="offices_name" property="officesName"/>
+		<result column="schedule_date" property="scheduleDate"/>
+		<result column="time_slot" property="timeSlot"/>
+		<result column="max_patients" property="maxPatients"/>
+		<result column="booked_count" property="bookedCount"/>
+		<result column="status" property="status"/>
+		<result column="create_time" property="createTime"/>
+	</resultMap>
+
+	<select id="findById" resultMap="scheduleMap" parameterType="int">
+		SELECT * FROM doctor_schedule WHERE id = #{id}
+	</select>
+
+	<select id="findByDoctorIdAndDate" resultMap="scheduleMap">
+		SELECT * FROM doctor_schedule
+		WHERE doctor_id = #{doctorId} AND schedule_date = #{scheduleDate}
+		ORDER BY time_slot
+	</select>
+
+	<select id="findByDoctorId" resultMap="scheduleMap">
+		SELECT * FROM doctor_schedule
+		WHERE doctor_id = #{doctorId}
+		  AND status = 1
+		  AND schedule_date >= CURDATE()
+		ORDER BY schedule_date, time_slot
+	</select>
+
+	<select id="findAll" resultMap="scheduleMap">
+		SELECT * FROM doctor_schedule
+		ORDER BY schedule_date DESC, time_slot
+		LIMIT #{start}, #{size}
+	</select>
+
+	<select id="countAll" resultType="int">
+		SELECT COUNT(*) FROM doctor_schedule
+	</select>
+
+	<select id="countByCondition" resultType="int">
+		SELECT COUNT(*) FROM doctor_schedule ds
+		LEFT JOIN doctor d ON ds.doctor_id = d.id
+		WHERE 1=1
+		<if test="doctorName != null and doctorName != ''">
+			AND d.doctor_name LIKE CONCAT('%', #{doctorName}, '%')
+		</if>
+		<if test="hospitalName != null and hospitalName != ''">
+			AND ds.hospital_name LIKE CONCAT('%', #{hospitalName}, '%')
+		</if>
+		<if test="scheduleDate != null and scheduleDate != ''">
+			AND ds.schedule_date = #{scheduleDate}
+		</if>
+	</select>
+
+	<select id="findByCondition" resultMap="scheduleMap">
+		SELECT ds.* FROM doctor_schedule ds
+		LEFT JOIN doctor d ON ds.doctor_id = d.id
+		WHERE 1=1
+		<if test="doctorName != null and doctorName != ''">
+			AND d.doctor_name LIKE CONCAT('%', #{doctorName}, '%')
+		</if>
+		<if test="hospitalName != null and hospitalName != ''">
+			AND ds.hospital_name LIKE CONCAT('%', #{hospitalName}, '%')
+		</if>
+		<if test="scheduleDate != null and scheduleDate != ''">
+			AND ds.schedule_date = #{scheduleDate}
+		</if>
+		ORDER BY ds.schedule_date DESC, ds.time_slot
+		LIMIT #{start}, #{size}
+	</select>
+
+	<insert id="insert" parameterType="edu.jssvc.entity.DoctorSchedule" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO doctor_schedule
+		(doctor_id, hospital_name, offices_name, schedule_date, time_slot, max_patients, booked_count, status)
+		VALUES
+		(#{doctorId}, #{hospitalName}, #{officesName}, #{scheduleDate}, #{timeSlot}, #{maxPatients}, 0, 1)
+	</insert>
+
+	<delete id="delete" parameterType="int">
+		DELETE FROM doctor_schedule WHERE id = #{id}
+	</delete>
+
+	<update id="toggleStatus">
+		UPDATE doctor_schedule SET status = #{status} WHERE id = #{id}
+	</update>
+
+	<update id="incrementBookedCount" parameterType="int">
+		UPDATE doctor_schedule SET booked_count = booked_count + 1
+		WHERE id = #{id} AND booked_count &lt; max_patients
+	</update>
+
+	<update id="decrementBookedCount" parameterType="int">
+		UPDATE doctor_schedule SET booked_count = booked_count - 1
+		WHERE id = #{id} AND booked_count > 0
+	</update>
+
+	<select id="findAvailableDates" resultType="string" parameterType="int">
+		SELECT DISTINCT schedule_date FROM doctor_schedule
+		WHERE doctor_id = #{doctorId} AND status = 1 AND booked_count &lt; max_patients
+		AND schedule_date >= CURDATE()
+		ORDER BY schedule_date
+	</select>
+
+	<select id="findAvailableSlots" resultMap="scheduleMap">
+		SELECT * FROM doctor_schedule
+		WHERE doctor_id = #{doctorId} AND schedule_date = #{scheduleDate}
+		AND status = 1 AND booked_count &lt; max_patients
+		ORDER BY time_slot
+	</select>
+
+</mapper>

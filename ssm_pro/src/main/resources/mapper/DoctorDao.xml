@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.jssvc.dao.DoctorDao">
+	<!-- 通过ID地区信息 -->
+	<select id="findAreaByHosAndOfficeName" resultType="edu.jssvc.entity.Doctor"
+		parameterType="edu.jssvc.entity.Doctor">
+		SELECT
+		* FROM `doctor`
+		WHERE hospital_name = #{hospitalName}
+		AND Offices_name = #{OfficeName}
+	</select>
+	<!--推荐医生 -->
+	<select id="findDoctorByRe" resultType="edu.jssvc.entity.Doctor" parameterType="java.util.Map">
+		SELECT *
+		FROM `doctor`
+		WHERE 1=1 AND hospital_name in
+		<foreach item="hospital" index="index" collection="list" open="("
+			separator="," close=")">
+			#{hospital.hospitalName}
+		</foreach>
+		ORDER BY
+		RAND()
+		limit #{start},#{size}
+	</select>
+	<!--推荐医生数量 -->
+	<select id="findDoctorByReNum" resultType="java.lang.Integer" >
+		SELECT COUNT(*)
+		FROM `doctor`
+		WHERE 1=1 AND hospital_name in
+		<foreach item="hospitalName" index="index" collection="list" open="("
+			separator="," close=")">
+			#{hospitalName.hospitalName}
+		</foreach>
+	</select>
+	
+	<!-- 通过ID查询医生信息 -->
+	<select id="findDoctorById" resultType="edu.jssvc.entity.Doctor"
+		parameterType="int">
+		SELECT
+		* FROM `doctor`
+		WHERE id =
+		#{id}
+	</select>
+	
+	<!-- 查询全部医生数量（根据条件） -->
+	<select id="findDoctorNum" resultType="java.lang.Integer" parameterType="edu.jssvc.entity.Doctor">
+		SELECT count(*) FROM
+		`doctor`
+		where 1 = 1 
+		<if test="hospitalName != null">
+			AND hospital_name LIKE '%${hospitalName}%'
+		</if>
+		<if test="officesName != null">
+			AND offices_name LIKE '%${officesName}%'
+		</if>
+		<if test="doctorName != null">
+			AND doctor_name LIKE '%${doctorName}%'
+		</if>
+		<if test="doctorTitle != null">
+			AND doctor_title = #{doctorTitle}
+		</if>
+		<if test="doctorAdministrative != null">
+			AND doctor_administrative = #{doctorAdministrative}
+		</if>
+		<if test="doctorDegree != null">
+			AND doctor_degree = #{doctorDegree}
+		</if>
+
+	</select>
+	
+	<!--根据条件查询全部医生-->
+	<select id="findDoctorByCondition" resultType="edu.jssvc.entity.Doctor" parameterType="edu.jssvc.entity.Doctor">
+		SELECT * FROM `doctor`
+		where 1 = 1 
+		<if test="hospitalName != null">
+			AND hospital_name LIKE '%${hospitalName}%'
+		</if>
+		<if test="officesName != null">
+			AND offices_name LIKE '%${officesName}%'
+		</if>
+		<if test="doctorName != null">
+			AND doctor_name LIKE '%${doctorName}%'
+		</if>
+		<if test="doctorTitle != null">
+			AND doctor_title = #{doctorTitle}
+		</if>
+		<if test="doctorAdministrative != null">
+			AND doctor_administrative = #{doctorAdministrative}
+		</if>
+		<if test="doctorDegree != null">
+			AND doctor_degree = #{doctorDegree}
+		</if>
+		ORDER BY
+		RAND()
+		limit #{start},#{size}
+		
+	</select>
+	
+	<!-- 查询全部医生职称 -->
+	<select id="findDoctorTitle" resultType="java.lang.String">
+		SELECT DISTINCT
+		doctor_title FROM `doctor`
+	</select>
+	<!-- 查询医生行政职位 -->
+	<select id="findDoctorAdministrative" resultType="java.lang.String">
+		SELECT DISTINCT
+		doctor_administrative FROM `doctor`
+	</select>
+	<!-- 查询医生学位 -->
+	<select id="findDoctorDegree" resultType="java.lang.String">
+		SELECT DISTINCT
+		doctor_degree FROM `doctor`
+	</select>
+
+	<!-- 新增医生 -->
+	<insert id="insertDoctor" parameterType="edu.jssvc.entity.Doctor" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO doctor
+		(doctor_name, doctor_sex, hospital_name, offices_name, doctor_img, doctor_title, teach_title, doctor_administrative, doctor_degree, doctor_forte, doctor_about)
+		VALUES
+		(#{doctorName}, #{doctorSex}, #{hospitalName}, #{officesName}, #{doctorImg}, #{doctorTitle}, #{teachTitle}, #{doctorAdministrative}, #{doctorDegree}, #{doctorForte}, #{doctorAbout})
+	</insert>
+
+	<!-- 更新医生 -->
+	<update id="updateDoctor" parameterType="edu.jssvc.entity.Doctor">
+		UPDATE doctor SET
+		doctor_name = #{doctorName},
+		doctor_sex = #{doctorSex},
+		hospital_name = #{hospitalName},
+		offices_name = #{officesName},
+		doctor_img = #{doctorImg},
+		doctor_title = #{doctorTitle},
+		teach_title = #{teachTitle},
+		doctor_administrative = #{doctorAdministrative},
+		doctor_degree = #{doctorDegree},
+		doctor_forte = #{doctorForte},
+		doctor_about = #{doctorAbout}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 删除医生 -->
+	<delete id="deleteDoctor" parameterType="int">
+		DELETE FROM doctor WHERE id = #{id}
+	</delete>
+
+</mapper>

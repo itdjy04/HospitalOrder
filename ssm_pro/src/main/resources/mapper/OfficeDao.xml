@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.jssvc.dao.OfficeDao">
+	<!-- 通过医院名称地区信息 -->
+	<select id="findOfficeByHosName" resultType="edu.jssvc.entity.Office"
+		parameterType="java.lang.String">
+		SELECT
+		* FROM `hos_office`
+		WHERE hospital_name =
+		#{hospitalName}
+	</select>
+
+	<!-- 通过ID地区信息 -->
+	<select id="findOfficeById" resultType="edu.jssvc.entity.Office"
+		parameterType="int">
+		SELECT
+		* FROM `hos_office`
+		WHERE id =
+		#{id}
+	</select>
+
+	<!--推荐科室 -->
+	<select id="findOfficeByRe" resultType="edu.jssvc.entity.Office"
+		parameterType="java.util.Map">
+		SELECT *
+		FROM `hos_office`
+		WHERE 1=1 AND hospital_name in
+		<foreach item="hospital" index="index" collection="list" open="("
+			separator="," close=")">
+			#{hospital.hospitalName}
+		</foreach>
+		ORDER BY
+		RAND() 
+		limit #{start},#{size}
+	</select>
+	<!--推荐科室数量 -->
+	<select id="findOfficeByReNum" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM `hos_office`
+		WHERE 1=1 AND hospital_name in
+		<foreach item="hospitalName" index="index" collection="list"
+			open="(" separator="," close=")">
+			#{hospitalName.hospitalName}
+		</foreach>
+	</select>
+
+	<!-- 查询全部支持预约科室的数量 -->
+	<select id="findOrderOfficeNum" resultType="java.lang.Integer"
+		parameterType="edu.jssvc.entity.Office">
+		SELECT count(*) FROM
+		`hos_office`
+		where 1 = 1
+		<if test="hospitalName != null">
+			AND hospital_name LIKE '%${hospitalName}%'
+		</if>
+		<if test="officesName != null">
+			AND offices_name LIKE '%${officesName}%'
+		</if>
+
+	</select>
+
+	<!--根据条件查询已开通预约的医院 -->
+	<select id="findOfficeByCondition" resultType="edu.jssvc.entity.Office"
+		parameterType="edu.jssvc.entity.Office">
+		SELECT * FROM `hos_office`
+		WHERE 1=1
+		<if test="hospitalName != null">
+			AND hospital_name LIKE '%${hospitalName}%'
+		</if>
+		<if test="officesName != null">
+			AND offices_name LIKE '%${officesName}%'
+		</if>
+		ORDER BY
+		RAND()
+		limit #{start},#{size}
+
+	</select>
+
+	<!-- 新增科室 -->
+	<insert id="insertOffice" parameterType="edu.jssvc.entity.Office" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO hos_office
+		(offices_name, hospital_name, doctor_num, offices_honor, offices_equipment, offices_about, offices_diagnosis_scope)
+		VALUES
+		(#{officesName}, #{hospitalName}, #{doctorNum}, #{officesHonor}, #{officesEquipment}, #{officesAbout}, #{officesDiagnosisScope})
+	</insert>
+
+	<!-- 更新科室 -->
+	<update id="updateOffice" parameterType="edu.jssvc.entity.Office">
+		UPDATE hos_office SET
+		offices_name = #{officesName},
+		hospital_name = #{hospitalName},
+		offices_honor = #{officesHonor},
+		offices_equipment = #{officesEquipment},
+		offices_about = #{officesAbout},
+		offices_diagnosis_scope = #{officesDiagnosisScope}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 删除科室 -->
+	<delete id="deleteOffice" parameterType="int">
+		DELETE FROM hos_office WHERE id = #{id}
+	</delete>
+
+</mapper>

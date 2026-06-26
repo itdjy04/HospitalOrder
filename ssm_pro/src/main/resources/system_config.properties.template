@@ -1,0 +1,11 @@
+mailhost = smtp.163.com
+
+personal = "苏州市医院预约系统"
+#邮箱
+mailuser = your_email@example.com
+#邮箱密码
+mailpassword = your_mail_password
+#每页面的记录数
+pageRecord=8
+#页码显示个数
+showPageCount=10
